@@ -1,10 +1,12 @@
 #!/usr/bin/with-contenv bashio
 set -e
+
 bashio::log.debug "Building ngrok.yml..."
-configPath="/ngrok-config/ngrok.yml"
-mkdir -p /ngrok-config
+configPath="/root/.config/ngrok/ngrok.yml"
+mkdir -p /root/.config/ngrok/
 echo "log: stdout" > $configPath
 bashio::log.debug "Web interface port: $(bashio::addon.port 4040)"
+
 if bashio::var.has_value "$(bashio::addon.port 4040)"; then
   echo "web_addr: 0.0.0.0:$(bashio::addon.port 4040)" >> $configPath
 fi
@@ -19,6 +21,8 @@ if bashio::var.has_value "$(bashio::config 'region')"; then
 else
   echo "No region defined, default region is US."
 fi
+
+ngrok config upgrade
 echo "tunnels:" >> $configPath
 for id in $(bashio::config "tunnels|keys"); do
   name=$(bashio::config "tunnels[${id}].name")
@@ -38,10 +42,10 @@ for id in $(bashio::config "tunnels|keys"); do
   inspect=$(bashio::config "tunnels[${id}].inspect")
   if [[ $inspect != "null" ]]; then
     echo "    inspect: $inspect" >> $configPath
-  fi
-  auth=$(bashio::config "tunnels[${id}].auth")
-  if [[ $auth != "null" ]]; then
-    echo "    auth: $auth" >> $configPath
+  #fi
+  #auth=$(bashio::config "tunnels[${id}].auth")
+  #if [[ $auth != "null" ]]; then
+  #  echo "    authtoken: $auth" >> $configPath
   fi
   host_header=$(bashio::config "tunnels[${id}].host_header")
   if [[ $host_header != "null" ]]; then
